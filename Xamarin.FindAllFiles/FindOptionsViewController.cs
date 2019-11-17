@@ -57,6 +57,7 @@ namespace Xamarin.FindAllFiles
             findResultsView.Clear();
 
             // TODO: Why do I (now) consistently get 335 results in 107 files for "monodevelop", but vscode gets 391 in 111? Clearly need to play with options
+            //       My numbers at least match what I'm getting back from rg (can check summary if using --json)
 
             // TODO: When we have internet again, switch to use json output like vscode
             var p = new Process

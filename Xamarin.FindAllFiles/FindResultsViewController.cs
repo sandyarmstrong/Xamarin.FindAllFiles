@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
+using System.Diagnostics;
 
 namespace Xamarin.FindAllFiles
 {
@@ -15,6 +16,7 @@ namespace Xamarin.FindAllFiles
         readonly List<FindResultGroupViewModel> findResultGroups = new List<FindResultGroupViewModel>();
         int totalResultCount;
         TimeSpan? totalSearchTime;
+        Stopwatch uiWorkStopwatch = new Stopwatch();
 
         #region Constructors
 
@@ -67,6 +69,11 @@ namespace Xamarin.FindAllFiles
 
         bool IFindResultsView.PushResults(IReadOnlyList<FindResultGroupViewModel> results)
         {
+            if (totalResultCount == 0)
+            {
+                uiWorkStopwatch?.Restart();
+            }
+
             foreach (var resultGroup in results)
             {
                 findResultGroups.Add(resultGroup);
@@ -97,6 +104,7 @@ namespace Xamarin.FindAllFiles
         void IFindResultsView.EndSearch(TimeSpan totalSearchTime)
         {
             this.totalSearchTime = totalSearchTime;
+            uiWorkStopwatch.Stop();
             RefreshSummaryLabel();
         }
 
@@ -107,7 +115,7 @@ namespace Xamarin.FindAllFiles
                 var fileOrFiles = findResultGroups.Count == 1 ? "file" : "files";
                 var summary = $"{totalResultCount} results in {findResultGroups.Count} {fileOrFiles}";
                 if (totalSearchTime != null)
-                    summary += $" (completed in {totalSearchTime.Value.TotalMilliseconds}ms)";
+                    summary += $" (completed in {Math.Floor(totalSearchTime.Value.TotalMilliseconds)}ms, {uiWorkStopwatch.ElapsedMilliseconds}ms of UI work)";
                 resultsSummaryLabel.StringValue = summary;
             }
             else
