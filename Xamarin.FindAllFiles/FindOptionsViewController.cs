@@ -47,12 +47,14 @@ namespace Xamarin.FindAllFiles
         }
 
         IFindResultsView findResultsView;
+        IFindResultFactory findResultFactory;
 
         private void FindButton_Activated(object sender, EventArgs args)
         {
             // TODO: Need cancellation and stuff
             findButton.Enabled = false;
 
+            findResultFactory = FindResultsViewController.CurrentFindResultsFactory;
             findResultsView = FindResultsViewController.CurrentFindResultsView;
             findResultsView.Clear();
 
@@ -73,6 +75,7 @@ namespace Xamarin.FindAllFiles
                 }
             };
 
+            var killed = false;
             var sw = new Stopwatch();
             sw.Start();
 
@@ -83,13 +86,19 @@ namespace Xamarin.FindAllFiles
                     p.Start();
                     p.BeginOutputReadLine();
 
-                    var currentGroup = new List<FindResultViewModel>();
+                    var currentGroup = new List<IFindResultViewModel>();
                     var currentGroupFilePath = string.Empty;
+                    var totalResults = 0;
 
                     // TODO: Check if we guarantee to get full lines here. Actually just use mirepoix when you have internet
                     //       Looks like we get a line at a time.
-                    p.OutputDataReceived += (o, e) =>
+                    p.OutputDataReceived += HandleOutputDataReceived;
+
+                    void HandleOutputDataReceived(object o, DataReceivedEventArgs e)
                     {
+                        if (totalResults > 10000)
+                            return;
+
                         try
                         {
                             var filePath = string.Empty;
@@ -97,8 +106,6 @@ namespace Xamarin.FindAllFiles
 
                             if (e.Data != null)
                             {
-
-                                //Console.Error.WriteLine(e.Data);
                                 var splitIndex = e.Data.IndexOf(':');
                                 if (splitIndex < 0)
                                     return;
@@ -110,7 +117,7 @@ namespace Xamarin.FindAllFiles
                             if (currentGroupFilePath != string.Empty && filePath != currentGroupFilePath)
                             {
                                 var resultsToPush = new[] {
-                                    new FindResultGroupViewModel(
+                                    findResultFactory.CreateGroupViewModel(
                                         Path.GetFileName(currentGroupFilePath),
                                         Path.GetDirectoryName(currentGroupFilePath),
                                         currentGroup),
@@ -128,7 +135,7 @@ namespace Xamarin.FindAllFiles
                                         }
                                     });
 
-                                currentGroup = new List<FindResultViewModel>();
+                                currentGroup = new List<IFindResultViewModel>();
                                 currentGroupFilePath = filePath;
                             }
                             else if (currentGroupFilePath == string.Empty)
@@ -137,7 +144,21 @@ namespace Xamarin.FindAllFiles
                             }
 
                             if (data != string.Empty)
-                                currentGroup.Add(new FindResultViewModel(data, 0, 0));
+                            {
+                                currentGroup.Add(findResultFactory.CreateResultViewModel(data, 0, 0));
+                                totalResults++;
+                                // 10000 is vscode's max
+                                // Searching monodevelop dir for "summary":
+                                //     I don't notice hiccups at 2000. Very slight hiccup, no rainbow at 5000. Rainbow for 15s at 6000. Rainbow for 30s at 7000.
+                                if (totalResults > 5000)
+                                {
+                                    killed = true;
+                                    p.Kill();
+                                    p.OutputDataReceived -= HandleOutputDataReceived;
+                                    Console.Error.WriteLine("Exceeded max allowed results; killing search");
+                                }
+
+                            }
                         }
                         catch (Exception ex)
                         {
@@ -152,7 +173,7 @@ namespace Xamarin.FindAllFiles
 
                     BeginInvokeOnMainThread(() =>
                     {
-                        findResultsView.EndSearch(sw.Elapsed);
+                        findResultsView.EndSearch(sw.Elapsed, canceled: killed);
                         findButton.Enabled = true;
                     });
                     
