@@ -34,6 +34,8 @@ namespace Xamarin.FindAllFiles
         {
         }
 
+        #endregion
+
         public override void ViewDidLoad()
         {
             // TODO: no events plz
@@ -44,17 +46,6 @@ namespace Xamarin.FindAllFiles
         private void FindButton_Activated(object sender, EventArgs e)
         {
             Console.WriteLine("clicked");
-        }
-
-        #endregion
-
-        //strongly typed view accessor
-        public new FindOptionsView View
-        {
-            get
-            {
-                return (FindOptionsView)base.View;
-            }
         }
     }
 }

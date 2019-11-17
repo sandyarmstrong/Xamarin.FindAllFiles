@@ -794,11 +794,11 @@
                                 <rect key="frame" x="0.0" y="0.0" width="450" height="254"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                 <clipView key="contentView" ambiguous="YES" id="tvd-rN-kdb">
-                                    <rect key="frame" x="1" y="0.0" width="448" height="253"/>
+                                    <rect key="frame" x="1" y="1" width="448" height="252"/>
                                     <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                     <subviews>
-                                        <outlineView verticalHuggingPriority="750" ambiguous="YES" allowsExpansionToolTips="YES" columnAutoresizingStyle="lastColumnOnly" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" headerView="FVv-lO-JZa" viewBased="YES" indentationPerLevel="16" outlineTableColumn="AUs-pF-oGG" id="wRz-UF-Gny">
-                                            <rect key="frame" x="0.0" y="0.0" width="448" height="228"/>
+                                        <outlineView verticalHuggingPriority="750" ambiguous="YES" allowsExpansionToolTips="YES" columnAutoresizingStyle="none" columnReordering="NO" columnResizing="NO" multipleSelection="NO" autosaveColumns="NO" rowSizeStyle="automatic" viewBased="YES" indentationPerLevel="16" outlineTableColumn="AUs-pF-oGG" id="wRz-UF-Gny">
+                                            <rect key="frame" x="0.0" y="0.0" width="448" height="252"/>
                                             <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                                             <size key="intercellSpacing" width="3" height="2"/>
                                             <color key="backgroundColor" name="controlBackgroundColor" catalog="System" colorSpace="catalog"/>
@@ -845,14 +845,10 @@
                                     <rect key="frame" x="1" y="119" width="223" height="15"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" doubleValue="1" horizontal="NO" id="yPO-bm-mdk">
+                                <scroller key="verticalScroller" hidden="YES" wantsLayer="YES" verticalHuggingPriority="750" horizontal="NO" id="yPO-bm-mdk">
                                     <rect key="frame" x="224" y="17" width="15" height="102"/>
                                     <autoresizingMask key="autoresizingMask"/>
                                 </scroller>
-                                <tableHeaderView key="headerView" id="FVv-lO-JZa">
-                                    <rect key="frame" x="0.0" y="0.0" width="448" height="25"/>
-                                    <autoresizingMask key="autoresizingMask"/>
-                                </tableHeaderView>
                             </scrollView>
                             <textField horizontalHuggingPriority="251" verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="XC5-8b-WkG">
                                 <rect key="frame" x="18" y="264" width="414" height="16"/>

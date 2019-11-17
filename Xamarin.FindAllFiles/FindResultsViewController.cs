@@ -42,13 +42,36 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
-            resultsOutlineView.Delegate = new FindResultsOutlineViewDelegate();
-            resultsOutlineView.DataSource = new FindResultsOutlineViewDataSource();
+            resultsOutlineView.Delegate = new FindResultsOutlineViewDelegate(this);
+            resultsOutlineView.DataSource = new FindResultsOutlineViewDataSource(this);
+
+            // TODO: Delete this
+            ((IFindResultsView)this).PushResults(
+                new List<FindResultGroupViewModel> {
+                    new FindResultGroupViewModel("blah.txt", "", new List<FindResultViewModel> {
+                        new FindResultViewModel("some preview text", 0, 0),
+                        new FindResultViewModel("some other preview text", 0, 0),
+                    }),
+                    new FindResultGroupViewModel("stuff.cs", "", new List<FindResultViewModel> {
+                        new FindResultViewModel("somebody loves me", 0, 0),
+                        new FindResultViewModel("I would like some hot dogs please", 0, 0),
+                    }),
+                });
         }
 
         bool IFindResultsView.PushResults(IReadOnlyList<FindResultGroupViewModel> results)
         {
+            foreach (var resultGroup in results)
+            {
+                findResultGroups.Add(resultGroup);
+                totalResultCount += resultGroup.Results.Count;
+            }
 
+            RefreshSummaryLabel();
+
+            // TODO: Is this problematic with long lists?
+            resultsOutlineView.ReloadData();
+            resultsOutlineView.ExpandItem(null, true);
 
             // TODO: Return false if total results exceed some limit
             return true;
@@ -60,40 +83,99 @@ namespace Xamarin.FindAllFiles
             findResultGroups.Clear();
             RefreshSummaryLabel();
 
-            resultsOutlineView.NeedsDisplay = true;
+            resultsOutlineView.ReloadData();
         }
 
         void RefreshSummaryLabel()
         {
-            resultsSummaryLabel.StringValue = $"{totalResultCount} results in {findResultGroups.Count} files";
+            if (findResultGroups.Count > 0)
+            {
+                var fileOrFiles = findResultGroups.Count > 1 ? "files" : "file";
+                resultsSummaryLabel.StringValue = $"{totalResultCount} results in {findResultGroups.Count} {fileOrFiles}";
+            }
+            else
+            {
+                resultsSummaryLabel.StringValue = string.Empty;
+            }
         }
 
         class FindResultsOutlineViewDelegate : NSOutlineViewDelegate
         {
+            readonly FindResultsViewController viewController;
+
+            public FindResultsOutlineViewDelegate(FindResultsViewController viewController)
+            {
+                this.viewController = viewController ?? throw new ArgumentNullException(nameof(viewController));
+            }
+
             public override NSView GetView(NSOutlineView outlineView, NSTableColumn tableColumn, NSObject item)
             {
-                //var view = outlineView.MakeView(tableColumn.Identifier, this);
-                return base.GetView(outlineView, tableColumn, item);
+                var oview = outlineView.MakeView(tableColumn.Identifier, this);
+                var view = oview as NSTableCellView;
+
+                if (view == null)
+                    view = new NSTableCellView();
+
+                if (item == null)
+                    view.TextField.StringValue = "ROOT";
+                else if (item is GroupWrapper groupWrapper)
+                    view.TextField.StringValue = groupWrapper.ViewModel.FileName;
+                else if (item is ResultWrapper resultWrapper)
+                    view.TextField.StringValue = resultWrapper.ViewModel.PreviewText;
+
+                return view;
             }
         }
 
         class FindResultsOutlineViewDataSource : NSOutlineViewDataSource
         {
+            readonly FindResultsViewController viewController;
+
+            public FindResultsOutlineViewDataSource(FindResultsViewController viewController)
+            {
+                this.viewController = viewController ?? throw new ArgumentNullException(nameof(viewController));
+            }
+
             public override nint GetChildrenCount(NSOutlineView outlineView, NSObject item)
             {
-                return base.GetChildrenCount(outlineView, item);
+                if (item == null)
+                    return viewController.findResultGroups.Count;
+                else if (item is GroupWrapper groupWrapper)
+                    return groupWrapper.ViewModel.Results.Count;
+
+                return 0;
             }
 
             public override NSObject GetChild(NSOutlineView outlineView, nint childIndex, NSObject item)
             {
-                return base.GetChild(outlineView, childIndex, item);
+                var index = (int)childIndex;
+
+                // TODO: OMG STOP RECREATING
+                // TODO: Using immutable here would help prevent sync issues (but realistically we shouldn't be creating stuff here at all)
+                if (item == null)// && index >= 0 && index < viewController.findResultGroups.Count)
+                    return new GroupWrapper { ViewModel = viewController.findResultGroups[index] };
+                else if (item is GroupWrapper groupWrapper)
+                    return new ResultWrapper { ViewModel = groupWrapper.ViewModel.Results[index] };
+
+                return null;
             }
 
             public override bool ItemExpandable(NSOutlineView outlineView, NSObject item)
             {
-                return base.ItemExpandable(outlineView, item);
+                return item is GroupWrapper;
             }
         }
+    }
+
+    // TODO: Should these implement the interface instead? And engine generates them directly via factory? Then no dupes.
+    class GroupWrapper : NSObject
+    {
+        public FindResultGroupViewModel ViewModel { get; set; }
+    }
+
+    class ResultWrapper : NSObject
+    {
+        public FindResultViewModel ViewModel { get; set; }
     }
 
     public class FindResultGroupViewModel
@@ -139,8 +221,8 @@ namespace Xamarin.FindAllFiles
 
     public interface IFindResultsView
     {
-        public bool PushResults(IReadOnlyList<FindResultGroupViewModel> results);
+        bool PushResults(IReadOnlyList<FindResultGroupViewModel> results);
 
-        public void Clear();
+        void Clear();
     }
 }
