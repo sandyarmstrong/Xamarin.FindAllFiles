@@ -22,6 +22,9 @@ namespace Xamarin.FindAllFiles
 		AppKit.NSTextField includeField { get; set; }
 
 		[Outlet]
+		AppKit.NSTextField workingDirectoryField { get; set; }
+
+		[Outlet]
 		AppKit.NSSearchField searchField { get; set; }
 		
 		void ReleaseDesignerOutlets ()
@@ -42,8 +45,13 @@ namespace Xamarin.FindAllFiles
 			}
 
 			if (excludeField != null) {
-				excludeField.Dispose ();
+				excludeField.Dispose();
 				excludeField = null;
+			}
+
+			if (workingDirectoryField != null) {
+				workingDirectoryField.Dispose();
+				workingDirectoryField = null;
 			}
 		}
 	}

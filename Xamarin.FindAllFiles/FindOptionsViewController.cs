@@ -44,6 +44,8 @@ namespace Xamarin.FindAllFiles
             // TODO: no events plz
             // TODO: Probably don't need a button anyway, can do same behavior as vscode. ViewModel shouldn't care either way
             findButton.Activated += FindButton_Activated;
+
+            workingDirectoryField.StringValue = "/Users/sandy/xam-git/monodevelop";
         }
 
         IFindResultsView findResultsView;
@@ -67,7 +69,7 @@ namespace Xamarin.FindAllFiles
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "/usr/local/bin/rg",
-                    WorkingDirectory = "/Users/sandy/xam-git/monodevelop",
+                    WorkingDirectory = String.IsNullOrEmpty(workingDirectoryField.StringValue) ? "/Users/sandy/xam-git/monodevelop" : workingDirectoryField.StringValue,
                     Arguments = $"\"{searchField.StringValue}\"", // TODO: Real escaping, etc
                     UseShellExecute = false,
                     CreateNoWindow = true,
