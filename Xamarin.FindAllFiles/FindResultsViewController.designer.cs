@@ -14,12 +14,20 @@ namespace Xamarin.FindAllFiles
 	{
 		[Outlet]
 		AppKit.NSOutlineView resultsOutlineView { get; set; }
+
+		[Outlet]
+		AppKit.NSTextField resultsSummaryLabel { get; set; }
 		
 		void ReleaseDesignerOutlets ()
 		{
 			if (resultsOutlineView != null) {
 				resultsOutlineView.Dispose ();
 				resultsOutlineView = null;
+			}
+
+			if (resultsSummaryLabel != null) {
+				resultsSummaryLabel.Dispose ();
+				resultsSummaryLabel = null;
 			}
 		}
 	}
