@@ -76,6 +76,14 @@
     <Compile Include="ViewController.designer.cs">
       <DependentUpon>ViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="FindOptionsViewController.cs" />
+    <Compile Include="FindOptionsViewController.designer.cs">
+      <DependentUpon>FindOptionsViewController.cs</DependentUpon>
+    </Compile>
+    <Compile Include="FindResultsViewController.cs" />
+    <Compile Include="FindResultsViewController.designer.cs">
+      <DependentUpon>FindResultsViewController.cs</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

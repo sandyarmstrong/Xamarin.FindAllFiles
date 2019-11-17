@@ -726,10 +726,10 @@
             </objects>
             <point key="canvasLocation" x="-274" y="1049"/>
         </scene>
-        <!--View Controller-->
+        <!--Find Options View Controller-->
         <scene sceneID="C9D-mP-rDr">
             <objects>
-                <viewController id="kj8-w2-vkY" sceneMemberID="viewController">
+                <viewController id="kj8-w2-vkY" customClass="FindOptionsViewController" sceneMemberID="viewController">
                     <view key="view" id="A2J-ph-frl">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -771,15 +771,21 @@
                             </button>
                         </subviews>
                     </view>
+                    <connections>
+                        <outlet property="excludeField" destination="MRY-Xi-nMW" id="nMG-dd-i6m"/>
+                        <outlet property="findButton" destination="jjl-df-uC6" id="Sq1-wN-lwl"/>
+                        <outlet property="includeField" destination="RnA-cO-hGW" id="fhl-gR-9hV"/>
+                        <outlet property="searchField" destination="eRy-O0-1Nw" id="uZ9-GH-3bP"/>
+                    </connections>
                 </viewController>
                 <customObject id="MJO-94-mZn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="329" y="716"/>
         </scene>
-        <!--View Controller-->
+        <!--Find Results View Controller-->
         <scene sceneID="4fh-Jl-fsx">
             <objects>
-                <viewController id="xpe-xw-N6T" sceneMemberID="viewController">
+                <viewController id="xpe-xw-N6T" customClass="FindResultsViewController" sceneMemberID="viewController">
                     <view key="view" id="R5k-8k-FME">
                         <rect key="frame" x="0.0" y="0.0" width="450" height="300"/>
                         <autoresizingMask key="autoresizingMask"/>
@@ -883,6 +889,9 @@
                             </scrollView>
                         </subviews>
                     </view>
+                    <connections>
+                        <outlet property="resultsOutlineView" destination="wRz-UF-Gny" id="0at-nZ-cu9"/>
+                    </connections>
                 </viewController>
                 <customObject id="LrM-sW-ZXv" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
             </objects>
