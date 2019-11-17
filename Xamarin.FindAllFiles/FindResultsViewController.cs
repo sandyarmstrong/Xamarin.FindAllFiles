@@ -14,6 +14,7 @@ namespace Xamarin.FindAllFiles
         // TODO: Maybe immutable (need internet)
         readonly List<FindResultGroupViewModel> findResultGroups = new List<FindResultGroupViewModel>();
         int totalResultCount;
+        TimeSpan? totalSearchTime;
 
         #region Constructors
 
@@ -75,6 +76,7 @@ namespace Xamarin.FindAllFiles
             RefreshSummaryLabel();
 
             // TODO: Is this problematic with long lists?
+            //       Seems like, as searches with hundreds of results often spinning rainbow
             resultsOutlineView.ReloadData();
             resultsOutlineView.ExpandItem(null, true);
 
@@ -85,18 +87,28 @@ namespace Xamarin.FindAllFiles
         void IFindResultsView.Clear()
         {
             totalResultCount = 0;
+            totalSearchTime = null;
             findResultGroups.Clear();
             RefreshSummaryLabel();
 
             resultsOutlineView.ReloadData();
         }
 
+        void IFindResultsView.EndSearch(TimeSpan totalSearchTime)
+        {
+            this.totalSearchTime = totalSearchTime;
+            RefreshSummaryLabel();
+        }
+
         void RefreshSummaryLabel()
         {
-            if (findResultGroups.Count > 0)
+            if (findResultGroups.Count > 0 || totalSearchTime.HasValue)
             {
-                var fileOrFiles = findResultGroups.Count > 1 ? "files" : "file";
-                resultsSummaryLabel.StringValue = $"{totalResultCount} results in {findResultGroups.Count} {fileOrFiles}";
+                var fileOrFiles = findResultGroups.Count == 1 ? "file" : "files";
+                var summary = $"{totalResultCount} results in {findResultGroups.Count} {fileOrFiles}";
+                if (totalSearchTime != null)
+                    summary += $" (completed in {totalSearchTime.Value.TotalMilliseconds}ms)";
+                resultsSummaryLabel.StringValue = summary;
             }
             else
             {
@@ -227,6 +239,9 @@ namespace Xamarin.FindAllFiles
     public interface IFindResultsView
     {
         bool PushResults(IReadOnlyList<FindResultGroupViewModel> results);
+
+        // TODO: Do we need a BeginSearch, or do we just count on results coming quickly enough that it doesn't matter?
+        void EndSearch(TimeSpan totalSearchTime);
 
         void Clear();
     }
