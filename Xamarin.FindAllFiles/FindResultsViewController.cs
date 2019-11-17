@@ -8,6 +8,9 @@ namespace Xamarin.FindAllFiles
 {
     public partial class FindResultsViewController : NSViewController, IFindResultsView
     {
+        // TODO: LOL
+        public static IFindResultsView CurrentFindResultsView { get; private set; }
+
         // TODO: Maybe immutable (need internet)
         readonly List<FindResultGroupViewModel> findResultGroups = new List<FindResultGroupViewModel>();
         int totalResultCount;
@@ -42,21 +45,23 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
+            CurrentFindResultsView = this;
+
             resultsOutlineView.Delegate = new FindResultsOutlineViewDelegate(this);
             resultsOutlineView.DataSource = new FindResultsOutlineViewDataSource(this);
 
             // TODO: Delete this
-            ((IFindResultsView)this).PushResults(
-                new List<FindResultGroupViewModel> {
-                    new FindResultGroupViewModel("blah.txt", "", new List<FindResultViewModel> {
-                        new FindResultViewModel("some preview text", 0, 0),
-                        new FindResultViewModel("some other preview text", 0, 0),
-                    }),
-                    new FindResultGroupViewModel("stuff.cs", "", new List<FindResultViewModel> {
-                        new FindResultViewModel("somebody loves me", 0, 0),
-                        new FindResultViewModel("I would like some hot dogs please", 0, 0),
-                    }),
-                });
+            //((IFindResultsView)this).PushResults(
+            //    new List<FindResultGroupViewModel> {
+            //        new FindResultGroupViewModel("blah.txt", "", new List<FindResultViewModel> {
+            //            new FindResultViewModel("some preview text", 0, 0),
+            //            new FindResultViewModel("some other preview text", 0, 0),
+            //        }),
+            //        new FindResultGroupViewModel("stuff.cs", "", new List<FindResultViewModel> {
+            //            new FindResultViewModel("somebody loves me", 0, 0),
+            //            new FindResultViewModel("I would like some hot dogs please", 0, 0),
+            //        }),
+            //    });
         }
 
         bool IFindResultsView.PushResults(IReadOnlyList<FindResultGroupViewModel> results)
@@ -119,7 +124,7 @@ namespace Xamarin.FindAllFiles
                 if (item == null)
                     view.TextField.StringValue = "ROOT";
                 else if (item is GroupWrapper groupWrapper)
-                    view.TextField.StringValue = groupWrapper.ViewModel.FileName;
+                    view.TextField.StringValue = $"{groupWrapper.ViewModel.FileName} ({groupWrapper.ViewModel.RelativeFilePath})";
                 else if (item is ResultWrapper resultWrapper)
                     view.TextField.StringValue = resultWrapper.ViewModel.PreviewText;
 

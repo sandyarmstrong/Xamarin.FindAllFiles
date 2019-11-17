@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using Foundation;
 using AppKit;
+using System.Diagnostics;
+using System.Threading.Tasks;
+using System.IO;
 
 namespace Xamarin.FindAllFiles
 {
@@ -43,9 +46,97 @@ namespace Xamarin.FindAllFiles
             findButton.Activated += FindButton_Activated;
         }
 
-        private void FindButton_Activated(object sender, EventArgs e)
+        IFindResultsView findResultsView;
+
+        private void FindButton_Activated(object sender, EventArgs args)
         {
-            Console.WriteLine("clicked");
+            findResultsView = FindResultsViewController.CurrentFindResultsView;
+            findResultsView.Clear();
+
+            // TODO: When we have internet again, switch to use json output like vscode
+            var p = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "/usr/local/bin/rg",
+                    WorkingDirectory = "/Users/sandy/xam-git/monodevelop",
+                    Arguments = searchField.StringValue,
+                    UseShellExecute = false,
+                    CreateNoWindow = true,
+                    RedirectStandardOutput = true,
+                }
+            };
+
+            var sw = new Stopwatch();
+            sw.Start();
+
+            Task.Run(() =>
+            {
+                try
+                {
+                    p.Start();
+                    p.BeginOutputReadLine();
+
+                    var currentGroup = new List<FindResultViewModel>();
+                    var currentGroupFilePath = string.Empty;
+
+                    // TODO: Check if we guarantee to get full lines here. Actually just use mirepoix when you have internet
+                    //       Looks like we get a line at a time.
+                    p.OutputDataReceived += (o, e) =>
+                    {
+                        try
+                        {
+                            if (e.Data == null)
+                                return;
+
+                            //Console.Error.WriteLine(e.Data);
+                            var splitIndex = e.Data.IndexOf(':');
+                            if (splitIndex < 0)
+                                return;
+
+                            var filePath = e.Data.Substring(0, splitIndex);
+                            var data = e.Data.Substring(splitIndex + 1).TrimStart();
+
+                            if (currentGroupFilePath != null && filePath != currentGroupFilePath)
+                            {
+                                BeginInvokeOnMainThread(() =>
+                                    {
+                                        try
+                                        {
+                                            findResultsView.PushResults(new[] {
+                                        new FindResultGroupViewModel(
+                                            Path.GetFileName(currentGroupFilePath),
+                                            Path.GetDirectoryName(currentGroupFilePath),
+                                            currentGroup),
+                                    });
+                                        }
+                                        catch (Exception ex)
+                                        {
+                                            Console.Error.WriteLine(ex);
+                                        }
+                                    });
+                                currentGroup = new List<FindResultViewModel>();
+                                currentGroupFilePath = filePath;
+                            }
+
+                            currentGroup.Add(new FindResultViewModel(data, 0, 0));
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.Error.WriteLine(ex);
+                        }
+                    };
+
+                    p.WaitForExit();
+                    sw.Stop();
+
+                    Console.Error.WriteLine($"Completed in {sw.ElapsedMilliseconds}ms");
+                }
+                catch (Exception e)
+                {
+                    Console.Error.WriteLine(e);
+                }
+            });
         }
     }
 }
