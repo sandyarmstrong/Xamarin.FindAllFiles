@@ -6,6 +6,8 @@ using AppKit;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.IO;
+using System.Text.Json;
+using System.Text;
 
 namespace Xamarin.FindAllFiles
 {
@@ -70,7 +72,7 @@ namespace Xamarin.FindAllFiles
                 {
                     FileName = "/usr/local/bin/rg",
                     WorkingDirectory = String.IsNullOrEmpty(workingDirectoryField.StringValue) ? "/Users/sandy/xam-git/monodevelop" : workingDirectoryField.StringValue,
-                    Arguments = $"\"{searchField.StringValue}\"", // TODO: Real escaping, etc
+                    Arguments = $"\"{searchField.StringValue}\" --json", // TODO: Real escaping, etc
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -106,14 +108,22 @@ namespace Xamarin.FindAllFiles
                             var filePath = string.Empty;
                             var data = string.Empty;
 
-                            if (e.Data != null)
+                            if (!string.IsNullOrEmpty(e.Data))
                             {
-                                var splitIndex = e.Data.IndexOf(':');
-                                if (splitIndex < 0)
-                                    return;
+                                //new Utf8JsonReader(
+                                var message = JsonSerializer.Deserialize<RipGrepMessage>(e.Data);
+                                if (message.type == "match")
+                                {
+                                    filePath = message.data.path.GetText();
+                                    data = message.data.lines.GetText();
+                                }
 
-                                filePath = e.Data.Substring(0, splitIndex);
-                                data = e.Data.Substring(splitIndex + 1).TrimStart();
+                                //var splitIndex = e.Data.IndexOf(':');
+                                //if (splitIndex < 0)
+                                //    return;
+
+                                //filePath = e.Data.Substring(0, splitIndex);
+                                //data = e.Data.Substring(splitIndex + 1).TrimStart();
                             }
 
                             if (currentGroupFilePath != string.Empty && filePath != currentGroupFilePath)
@@ -187,4 +197,47 @@ namespace Xamarin.FindAllFiles
             });
         }
     }
+
+    class RipGrepMessage
+    {
+        public string type { get; set; }
+        public RipGrepMatch data { get; set; }
+    }
+
+    class RipGrepMatch
+    {
+        public RipGrepBytesOrText path { get; set; }
+        public RipGrepBytesOrText lines { get; set; }
+        public int line_number { get; set; }
+        public int absolute_offset { get; set; }
+        public IList<RipGrepSubMatch> submatches { get; set; }
+    }
+
+    class RipGrepSubMatch
+    {
+        public RipGrepBytesOrText match { get; set; }
+        public int start { get; set; }
+        public int end { get; set; }
+    }
+
+    class RipGrepBytesOrText
+    {
+        public string bytes { get; set; }
+
+        public string text { get; set; }
+
+        public string GetText()
+        {
+            if (!string.IsNullOrEmpty(bytes))
+            {
+                return Encoding.UTF8.GetString(Convert.FromBase64String(bytes));
+            }
+            else
+            {
+                return text;
+            }
+        }
+    }
+
+
 }
