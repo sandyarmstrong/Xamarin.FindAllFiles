@@ -17,6 +17,7 @@ namespace Xamarin.FindAllFiles
         // TODO: Maybe immutable (need internet)
         readonly List<FindResultGroupViewModel> findResultGroups = new List<FindResultGroupViewModel>();
         int totalResultCount;
+        int rowCount;
         TimeSpan? totalSearchTime;
         Stopwatch uiWorkStopwatch = new Stopwatch();
 
@@ -54,19 +55,6 @@ namespace Xamarin.FindAllFiles
 
             resultsOutlineView.Delegate = new FindResultsOutlineViewDelegate(this);
             resultsOutlineView.DataSource = new FindResultsOutlineViewDataSource(this);
-
-            // TODO: Delete this
-            //((IFindResultsView)this).PushResults(
-            //    new List<FindResultGroupViewModel> {
-            //        new FindResultGroupViewModel("blah.txt", "", new List<FindResultViewModel> {
-            //            new FindResultViewModel("some preview text", 0, 0),
-            //            new FindResultViewModel("some other preview text", 0, 0),
-            //        }),
-            //        new FindResultGroupViewModel("stuff.cs", "", new List<FindResultViewModel> {
-            //            new FindResultViewModel("somebody loves me", 0, 0),
-            //            new FindResultViewModel("I would like some hot dogs please", 0, 0),
-            //        }),
-            //    });
         }
 
         bool IFindResultsView.PushResults(IReadOnlyList<IFindResultGroupViewModel> results)
@@ -76,31 +64,30 @@ namespace Xamarin.FindAllFiles
                 uiWorkStopwatch?.Restart();
             }
 
-            foreach (var resultGroup in results)
+            foreach (FindResultGroupViewModel resultGroup in results)
             {
-                findResultGroups.Add((FindResultGroupViewModel)resultGroup);
+                findResultGroups.Add(resultGroup);
                 totalResultCount += resultGroup.Results.Count;
+                resultsOutlineView.InsertItems(new NSIndexSet(findResultGroups.Count - 1), null, NSTableViewAnimation.None);
+                resultsOutlineView.ExpandItem(resultGroup, true);
             }
 
             RefreshSummaryLabel();
 
-            // TODO: Is this problematic with long lists?
-            //       Seems like, as searches with hundreds of results often spinning rainbow
-            resultsOutlineView.ReloadData();
-            resultsOutlineView.ExpandItem(null, true);
-
             // TODO: Return false if total results exceed some limit
+            // (right now the engine is determining the limit. who should?)
             return true;
         }
 
         void IFindResultsView.Clear()
         {
-            totalResultCount = 0;
-            totalSearchTime = null;
             findResultGroups.Clear();
-            RefreshSummaryLabel();
-
             resultsOutlineView.ReloadData();
+
+            totalResultCount = 0;
+            rowCount = 0;
+            totalSearchTime = null;
+            RefreshSummaryLabel();
         }
 
         void IFindResultsView.EndSearch(TimeSpan totalSearchTime, bool canceled)

@@ -115,7 +115,7 @@ namespace Xamarin.FindAllFiles
                                 if (message.type == "match")
                                 {
                                     filePath = message.data.path.GetText();
-                                    data = message.data.lines.GetText();
+                                    data = message.data.lines.GetText().TrimStart();
                                 }
 
                                 //var splitIndex = e.Data.IndexOf(':');
@@ -162,7 +162,7 @@ namespace Xamarin.FindAllFiles
                                 // 10000 is vscode's max
                                 // Searching monodevelop dir for "summary":
                                 //     I don't notice hiccups at 2000. Very slight hiccup, no rainbow at 5000. Rainbow for 15s at 6000. Rainbow for 30s at 7000.
-                                if (totalResults > 5000)
+                                if (totalResults > 10000)
                                 {
                                     killed = true;
                                     p.Kill();
