@@ -26,7 +26,16 @@ namespace Xamarin.FindAllFiles
 
 		[Outlet]
 		AppKit.NSSearchField searchField { get; set; }
-		
+
+		[Outlet]
+		AppKit.NSButton matchCaseButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton matchWholeWordButton { get; set; }
+
+		[Outlet]
+		AppKit.NSButton regexButton { get; set; }
+
 		void ReleaseDesignerOutlets ()
 		{
 			if (findButton != null) {
@@ -52,6 +61,24 @@ namespace Xamarin.FindAllFiles
 			if (workingDirectoryField != null) {
 				workingDirectoryField.Dispose();
 				workingDirectoryField = null;
+			}
+
+			if (matchCaseButton != null)
+			{
+				matchCaseButton.Dispose();
+				matchCaseButton = null;
+			}
+
+			if (matchWholeWordButton != null)
+			{
+				matchWholeWordButton.Dispose();
+				matchWholeWordButton = null;
+			}
+
+			if (regexButton != null)
+			{
+				regexButton.Dispose();
+				regexButton = null;
 			}
 		}
 	}

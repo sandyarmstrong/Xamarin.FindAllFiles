@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
 using System.Text;
+using System.Text.RegularExpressions;
 
 namespace Xamarin.FindAllFiles
 {
@@ -43,24 +44,107 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
-            // TODO: no events plz
             // TODO: Probably don't need a button anyway, can do same behavior as vscode. ViewModel shouldn't care either way
-            findButton.Activated += FindButton_Activated;
+            //findButton.Activated += OnSearchRequested;
+
+            foreach (var control in new NSControl [] { searchField, workingDirectoryField, includeField, excludeField, matchCaseButton, matchWholeWordButton, regexButton, findButton })
+            {
+                control.Target = this;
+                control.Action = new ObjCRuntime.Selector("searchRequested:");
+            }
 
             workingDirectoryField.StringValue = "/Users/sandy/xam-git/monodevelop";
         }
 
         IFindResultsView findResultsView;
         IFindResultFactory findResultFactory;
+        bool isSearching;
+        FindOptionsViewModel lastFindOptions;
 
-        private void FindButton_Activated(object sender, EventArgs args)
+        static long maxFileSize = (long)16 * 1024 * 1024 * 1024;
+
+        [Export("searchRequested:")]
+        private void OnSearchRequested(NSObject sender)
         {
+            if (isSearching)
+                return;
+
+            // TODO: Only trigger search if stuff has changed (looks like we need a viewmodel here!)
+
+            var viewModel = new FindOptionsViewModel
+            {
+                Query = searchField.StringValue,
+                WorkingDirectory = workingDirectoryField.StringValue,
+                Include = includeField.StringValue,
+                Exclude = includeField.StringValue,
+                MatchCase = matchCaseButton.State == NSCellStateValue.On,
+                MatchWholeWord = matchWholeWordButton.State == NSCellStateValue.On,
+                IsRegex = regexButton.State == NSCellStateValue.On,
+            };
+
+            if (sender != findButton && viewModel == lastFindOptions)
+                return;
+
+            lastFindOptions = viewModel;
+
+            var searchString = viewModel.Query;
+
+            if (string.IsNullOrEmpty(searchString))
+                return;
+
+            isSearching = true;
+
             // TODO: Need cancellation and stuff
             findButton.Enabled = false;
 
             findResultFactory = FindResultsViewController.CurrentFindResultsFactory;
             findResultsView = FindResultsViewController.CurrentFindResultsView;
             findResultsView.Clear();
+
+            // TODO: Multiline
+            var matchCaseArgs = viewModel.MatchCase ? "--case-sensitive" : "--ignore-case";
+            var isRegex = viewModel.IsRegex;
+
+            if (!isRegex)
+            {
+                searchString = EscapeRegExpCharacters(searchString);
+
+                string EscapeRegExpCharacters(string val)
+                {
+                    return Regex.Replace(val, "[\\{}*+?|^$.[]()]", "\\$&");
+                }
+            }
+
+            if (viewModel.MatchWholeWord)
+            {
+                // VSCODE:
+                //if (!isRegex)
+                //{
+                //    searchString = escapeRegExpCharacters(searchString);
+                //}
+                //if (options.wholeWord)
+                //{
+                //    if (!/\B /.test(searchString.charAt(0))) {
+                //        searchString = '\\b' + searchString;
+                //    }
+                //    if (!/\B /.test(searchString.charAt(searchString.length - 1))) {
+                //        searchString = searchString + '\\b';
+                //    }
+                //}
+                //export function escapeRegExpCharacters(value: string): string {
+                //  return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
+                //}
+
+                if (!Regex.IsMatch(searchString.Substring(0, 1), "\\B"))
+                {
+                    searchString = "\\b" + searchString;
+                }
+
+                if (!Regex.IsMatch(searchString.Substring(searchString.Length - 1, 1), "\\B"))
+                {
+                    searchString += "\\b";
+                }
+            }
 
             // TODO: Why do I (now) consistently get 335 results in 107 files for "monodevelop", but vscode gets 391 in 111? Clearly need to play with options
             //       My numbers at least match what I'm getting back from rg (can check summary if using --json)
@@ -71,8 +155,8 @@ namespace Xamarin.FindAllFiles
                 StartInfo = new ProcessStartInfo
                 {
                     FileName = "/usr/local/bin/rg",
-                    WorkingDirectory = String.IsNullOrEmpty(workingDirectoryField.StringValue) ? "/Users/sandy/xam-git/monodevelop" : workingDirectoryField.StringValue,
-                    Arguments = $"\"{searchField.StringValue}\" --json", // TODO: Real escaping, etc
+                    WorkingDirectory = String.IsNullOrEmpty(viewModel.WorkingDirectory) ? "/Users/sandy/xam-git/monodevelop" : viewModel.WorkingDirectory,
+                    Arguments = $"\"{searchString}\" --json --max-filesize {maxFileSize} {matchCaseArgs}", // TODO: Real escaping, etc
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -180,6 +264,7 @@ namespace Xamarin.FindAllFiles
 
                     p.WaitForExit();
                     sw.Stop();
+                    isSearching = false;
 
                     Console.Error.WriteLine($"Completed in {sw.ElapsedMilliseconds}ms");
 
@@ -188,7 +273,7 @@ namespace Xamarin.FindAllFiles
                         findResultsView.EndSearch(sw.Elapsed, canceled: killed);
                         findButton.Enabled = true;
                     });
-                    
+
                 }
                 catch (Exception e)
                 {
@@ -196,6 +281,76 @@ namespace Xamarin.FindAllFiles
                 }
             });
         }
+    }
+
+    class FindOptionsViewModel : IEquatable<FindOptionsViewModel>
+    {
+        public bool MatchCase { get; set; }
+
+        public bool MatchWholeWord { get; set; }
+
+        public bool IsRegex { get; set; }
+
+        public string Query { get; set; }
+
+        public string WorkingDirectory { get; set; }
+
+        public string Include { get; set; }
+
+        public string Exclude { get; set; }
+
+        public bool Equals(FindOptionsViewModel other)
+        {
+            return other != null &&
+                MatchCase == other.MatchCase &&
+                MatchWholeWord == other.MatchWholeWord &&
+                IsRegex == other.IsRegex &&
+                Query == other.Query &&
+                WorkingDirectory == other.WorkingDirectory &&
+                Include == other.Include &&
+                Exclude == other.Exclude;
+        }
+
+        public override bool Equals(object obj)
+        {
+            return obj is FindOptionsViewModel other && this == other;
+        }
+
+        public override int GetHashCode()
+        {
+            var hash = 23;
+            hash = hash * 31 + MatchCase.GetHashCode();
+            hash = hash * 31 + MatchWholeWord.GetHashCode();
+            hash = hash * 31 + IsRegex.GetHashCode();
+            if (Query != null)
+                hash = hash * 31 + Query.GetHashCode();
+            if (WorkingDirectory != null)
+                hash = hash * 31 + WorkingDirectory.GetHashCode();
+            if (Include != null)
+                hash = hash * 31 + Include.GetHashCode();
+            if (Exclude != null)
+                hash = hash * 31 + Exclude.GetHashCode();
+            return hash;
+        }
+
+        public static bool operator ==(FindOptionsViewModel left, FindOptionsViewModel right)
+        {
+            if (ReferenceEquals(left, right))
+                return true;
+            if (ReferenceEquals(left, null) || ReferenceEquals(right, null))
+                return false;
+
+            return left.MatchCase == right.MatchCase &&
+                left.MatchWholeWord == right.MatchWholeWord &&
+                left.IsRegex == right.IsRegex &&
+                left.Query == right.Query &&
+                left.WorkingDirectory == right.WorkingDirectory &&
+                left.Include == right.Include &&
+                left.Exclude == right.Exclude;
+        }
+
+        public static bool operator !=(FindOptionsViewModel left, FindOptionsViewModel right)
+            => !(left == right);
     }
 
     class RipGrepMessage

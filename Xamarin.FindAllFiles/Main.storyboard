@@ -772,20 +772,47 @@
                             <searchField wantsLayer="YES" verticalHuggingPriority="750" fixedFrame="YES" textCompletion="NO" translatesAutoresizingMaskIntoConstraints="NO" id="eRy-O0-1Nw">
                                 <rect key="frame" x="20" y="138" width="410" height="22"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
-                                <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" id="lQj-bC-DUV">
+                                <searchFieldCell key="cell" scrollable="YES" lineBreakMode="clipping" selectable="YES" editable="YES" sendsActionOnEndEditing="YES" borderStyle="bezel" usesSingleLineMode="YES" bezelStyle="round" sendsWholeSearchString="YES" id="lQj-bC-DUV">
                                     <font key="font" metaFont="system"/>
                                     <color key="textColor" name="controlTextColor" catalog="System" colorSpace="catalog"/>
                                     <color key="backgroundColor" name="textBackgroundColor" catalog="System" colorSpace="catalog"/>
                                 </searchFieldCell>
                             </searchField>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="177-GB-INa">
+                                <rect key="frame" x="14" y="21" width="85" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="recessed" title="Match Case" bezelStyle="recessed" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="NlG-tn-S9V">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                    <font key="font" metaFont="systemBold" size="12"/>
+                                </buttonCell>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="YJ9-Dd-6rG">
+                                <rect key="frame" x="107" y="21" width="128" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="recessed" title="Match Whole Word" bezelStyle="recessed" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="gmh-TI-quS">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                    <font key="font" metaFont="systemBold" size="12"/>
+                                </buttonCell>
+                            </button>
+                            <button verticalHuggingPriority="750" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="Zxq-5k-Wp4">
+                                <rect key="frame" x="243" y="21" width="52" height="19"/>
+                                <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMinY="YES"/>
+                                <buttonCell key="cell" type="recessed" title="RegEx" bezelStyle="recessed" alignment="center" borderStyle="border" imageScaling="proportionallyDown" inset="2" id="kuK-2f-YSU">
+                                    <behavior key="behavior" pushIn="YES" lightByBackground="YES" lightByGray="YES" changeBackground="YES" changeGray="YES"/>
+                                    <font key="font" metaFont="systemBold" size="12"/>
+                                </buttonCell>
+                            </button>
                         </subviews>
                     </view>
                     <connections>
-                        <outlet property="workingDirectoryField" destination="rHt-fK-kvS" id="nMG-dd-i6n"/>
                         <outlet property="excludeField" destination="MRY-Xi-nMW" id="nMG-dd-i6m"/>
                         <outlet property="findButton" destination="jjl-df-uC6" id="Sq1-wN-lwl"/>
                         <outlet property="includeField" destination="RnA-cO-hGW" id="fhl-gR-9hV"/>
+                        <outlet property="matchCaseButton" destination="177-GB-INa" id="nMG-dd-i6o"/>
+                        <outlet property="matchWholeWordButton" destination="YJ9-Dd-6rG" id="nMG-dd-i6p"/>
+                        <outlet property="regexButton" destination="Zxq-5k-Wp4" id="nMG-dd-i6q"/>
                         <outlet property="searchField" destination="eRy-O0-1Nw" id="uZ9-GH-3bP"/>
+                        <outlet property="workingDirectoryField" destination="rHt-fK-kvS" id="nMG-dd-i6n"/>
                     </connections>
                 </viewController>
                 <customObject id="MJO-94-mZn" userLabel="First Responder" customClass="NSResponder" sceneMemberID="firstResponder"/>
@@ -816,7 +843,7 @@
                                             <tableColumns>
                                                 <tableColumn editable="NO" width="644" minWidth="40" maxWidth="1000" id="AUs-pF-oGG">
                                                     <tableHeaderCell key="headerCell" lineBreakMode="truncatingTail" borderStyle="border">
-                                                        <font key="font" metaFont="message" size="11"/>
+                                                        <font key="font" metaFont="menu" size="11"/>
                                                         <color key="textColor" name="headerTextColor" catalog="System" colorSpace="catalog"/>
                                                         <color key="backgroundColor" name="headerColor" catalog="System" colorSpace="catalog"/>
                                                     </tableHeaderCell>
