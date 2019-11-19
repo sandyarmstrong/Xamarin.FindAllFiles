@@ -76,9 +76,9 @@ namespace Xamarin.FindAllFiles
                 WorkingDirectory = workingDirectoryField.StringValue,
                 Include = includeField.StringValue,
                 Exclude = includeField.StringValue,
-                MatchCase = matchCaseButton.State == NSCellStateValue.On,
-                MatchWholeWord = matchWholeWordButton.State == NSCellStateValue.On,
-                IsRegex = regexButton.State == NSCellStateValue.On,
+                MatchCase = matchCaseButton.State == NSCellStateValue.On, //cmd+opt+c
+                MatchWholeWord = matchWholeWordButton.State == NSCellStateValue.On,//cmd+opt+w
+                IsRegex = regexButton.State == NSCellStateValue.On,//cmd+opt+r
                 UseExcludeSettingsAndIgnoreFiles = useExcludeSettingsButton.State == NSCellStateValue.On,
             };
 
