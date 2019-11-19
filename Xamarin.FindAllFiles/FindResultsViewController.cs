@@ -1,9 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Foundation;
-using AppKit;
 using System.Diagnostics;
+
+using AppKit;
+using Foundation;
 
 namespace Xamarin.FindAllFiles
 {
@@ -166,8 +166,6 @@ namespace Xamarin.FindAllFiles
             {
                 var index = (int)childIndex;
 
-                // TODO: OMG STOP RECREATING
-                // TODO: Using immutable here would help prevent sync issues (but realistically we shouldn't be creating stuff here at all)
                 if (item == null)// && index >= 0 && index < viewController.findResultGroups.Count)
                     return viewController.findResultGroups[index] as FindResultGroupViewModel;
                 else if (item is FindResultGroupViewModel groupViewModel)

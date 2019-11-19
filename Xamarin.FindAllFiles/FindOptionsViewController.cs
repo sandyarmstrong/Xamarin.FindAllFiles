@@ -1,14 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using Foundation;
-using AppKit;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.IO;
 using System.Text.Json;
 using System.Text;
 using System.Text.RegularExpressions;
+
+using AppKit;
+using Foundation;
 
 namespace Xamarin.FindAllFiles
 {
@@ -44,9 +44,6 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
-            // TODO: Probably don't need a button anyway, can do same behavior as vscode. ViewModel shouldn't care either way
-            //findButton.Activated += OnSearchRequested;
-
             foreach (var control in new NSControl [] { searchField, workingDirectoryField, includeField, excludeField, matchCaseButton, matchWholeWordButton, regexButton, findButton })
             {
                 control.Target = this;
@@ -61,7 +58,9 @@ namespace Xamarin.FindAllFiles
         bool isSearching;
         FindOptionsViewModel lastFindOptions;
 
+        // These are straight from vscode
         static long maxFileSize = (long)16 * 1024 * 1024 * 1024;
+        static int maxResults = 10000;
 
         [Export("searchRequested:")]
         private void OnSearchRequested(NSObject sender)
@@ -117,24 +116,6 @@ namespace Xamarin.FindAllFiles
 
             if (viewModel.MatchWholeWord)
             {
-                // VSCODE:
-                //if (!isRegex)
-                //{
-                //    searchString = escapeRegExpCharacters(searchString);
-                //}
-                //if (options.wholeWord)
-                //{
-                //    if (!/\B /.test(searchString.charAt(0))) {
-                //        searchString = '\\b' + searchString;
-                //    }
-                //    if (!/\B /.test(searchString.charAt(searchString.length - 1))) {
-                //        searchString = searchString + '\\b';
-                //    }
-                //}
-                //export function escapeRegExpCharacters(value: string): string {
-                //  return value.replace(/[\\\{\}\*\+\?\|\^\$\.\[\]\(\)]/g, '\\$&');
-                //}
-
                 if (!Regex.IsMatch(searchString.Substring(0, 1), "\\B"))
                 {
                     searchString = "\\b" + searchString;
@@ -184,7 +165,7 @@ namespace Xamarin.FindAllFiles
 
                     void HandleOutputDataReceived(object o, DataReceivedEventArgs e)
                     {
-                        if (totalResults > 10000)
+                        if (totalResults > maxResults)
                             return;
 
                         try
@@ -201,13 +182,6 @@ namespace Xamarin.FindAllFiles
                                     filePath = message.data.path.GetText();
                                     data = message.data.lines.GetText().TrimStart();
                                 }
-
-                                //var splitIndex = e.Data.IndexOf(':');
-                                //if (splitIndex < 0)
-                                //    return;
-
-                                //filePath = e.Data.Substring(0, splitIndex);
-                                //data = e.Data.Substring(splitIndex + 1).TrimStart();
                             }
 
                             if (currentGroupFilePath != string.Empty && filePath != currentGroupFilePath)
@@ -243,17 +217,14 @@ namespace Xamarin.FindAllFiles
                             {
                                 currentGroup.Add(findResultFactory.CreateResultViewModel(data, 0, 0));
                                 totalResults++;
-                                // 10000 is vscode's max
-                                // Searching monodevelop dir for "summary":
-                                //     I don't notice hiccups at 2000. Very slight hiccup, no rainbow at 5000. Rainbow for 15s at 6000. Rainbow for 30s at 7000.
-                                if (totalResults > 10000)
+
+                                if (totalResults > maxResults)
                                 {
                                     killed = true;
                                     p.Kill();
                                     p.OutputDataReceived -= HandleOutputDataReceived;
                                     Console.Error.WriteLine("Exceeded max allowed results; killing search");
                                 }
-
                             }
                         }
                         catch (Exception ex)
@@ -273,7 +244,6 @@ namespace Xamarin.FindAllFiles
                         findResultsView.EndSearch(sw.Elapsed, canceled: killed);
                         findButton.Enabled = true;
                     });
-
                 }
                 catch (Exception e)
                 {
@@ -393,6 +363,4 @@ namespace Xamarin.FindAllFiles
             }
         }
     }
-
-
 }
