@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Text;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 using AppKit;
 using Foundation;
@@ -44,7 +45,16 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
-            foreach (var control in new NSControl [] { searchField, workingDirectoryField, includeField, excludeField, matchCaseButton, matchWholeWordButton, regexButton, useExcludeSettingsButton, findButton })
+            foreach (var control in new NSControl [] {
+                searchField,
+                workingDirectoryField,
+                includeField,
+                excludeField,
+                matchCaseButton,
+                matchWholeWordButton,
+                regexButton,
+                useExcludeSettingsButton,
+                findButton })
             {
                 control.Target = this;
                 control.Action = new ObjCRuntime.Selector("searchRequested:");
@@ -188,6 +198,7 @@ namespace Xamarin.FindAllFiles
                         {
                             var filePath = string.Empty;
                             var data = string.Empty;
+                            RipGrepMatch match = null;
 
                             if (!string.IsNullOrEmpty(e.Data))
                             {
@@ -195,8 +206,9 @@ namespace Xamarin.FindAllFiles
                                 var message = JsonSerializer.Deserialize<RipGrepMessage>(e.Data);
                                 if (message.type == "match")
                                 {
-                                    filePath = message.data.path.GetText();
-                                    data = message.data.lines.GetText().TrimStart();
+                                    match = message.data;
+                                    filePath = match.path.GetText();
+                                    data = match.lines.GetText();
                                 }
                             }
 
@@ -229,9 +241,16 @@ namespace Xamarin.FindAllFiles
                                 currentGroupFilePath = filePath;
                             }
 
-                            if (data != string.Empty)
+                            if (data != string.Empty && match != null)
                             {
-                                currentGroup.Add(findResultFactory.CreateResultViewModel(data, 0, 0));
+                                var submatch = match.submatches.FirstOrDefault();
+
+                                currentGroup.Add(findResultFactory.CreateResultViewModel(
+                                    data,
+                                    match.line_number,
+                                    submatch?.start ?? 0,
+                                    submatch?.end ?? data.Length));
+
                                 totalResults++;
 
                                 if (totalResults > maxResults)

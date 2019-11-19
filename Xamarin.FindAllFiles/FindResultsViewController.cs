@@ -135,9 +135,43 @@ namespace Xamarin.FindAllFiles
                 if (item == null)
                     view.TextField.StringValue = "ROOT";
                 else if (item is FindResultGroupViewModel groupViewModel)
-                    view.TextField.StringValue = $"{groupViewModel.FileName} ({groupViewModel.RelativeFilePath})";
+                {
+                    var attributedBuffer = new NSMutableAttributedString(groupViewModel.FileName);
+                    attributedBuffer.BeginEditing();
+                    if (!string.IsNullOrEmpty(groupViewModel.RelativeFilePath))
+                    {
+                        attributedBuffer.Append(new NSAttributedString(
+                            $" {groupViewModel.RelativeFilePath}",
+                            //font: slightly smaller
+                            foregroundColor: NSColor.Gray));
+                    }
+                    attributedBuffer.EndEditing();
+                    view.TextField.AttributedStringValue = attributedBuffer;
+                }
                 else if (item is FindResultViewModel resultViewModel)
-                    view.TextField.StringValue = resultViewModel.PreviewText;
+                {
+                    // TODO: Trim string, adjust offsets. Decide what to do if offsets are in leading/trailing space (probably don't trim at all?)
+
+                    var attributedBuffer = new NSMutableAttributedString();
+                    attributedBuffer.BeginEditing();
+
+                    if (resultViewModel.StartColumn > 0)
+                        attributedBuffer.Append(new NSAttributedString(
+                            resultViewModel.PreviewText.Substring(0, resultViewModel.StartColumn)));
+
+                    attributedBuffer.Append(new NSAttributedString(
+                        resultViewModel.PreviewText.Substring(
+                            resultViewModel.StartColumn,
+                            resultViewModel.EndColumn - resultViewModel.StartColumn),
+                        backgroundColor: NSColor.FromRgb(240, 193, 163)));//240	193	163	
+
+                    if (resultViewModel.EndColumn < resultViewModel.PreviewText.Length)
+                        attributedBuffer.Append(new NSAttributedString(
+                            resultViewModel.PreviewText.Substring(resultViewModel.EndColumn)));
+
+                    attributedBuffer.EndEditing();
+                    view.TextField.AttributedStringValue = attributedBuffer;
+                }
 
                 return view;
             }
@@ -196,7 +230,9 @@ namespace Xamarin.FindAllFiles
 
         int Line { get; }
 
-        int Column { get; }
+        int StartColumn { get; }
+
+        int EndColumn { get; }
     }
 
     public class FindResultGroupViewModel : NSObject, IFindResultGroupViewModel
@@ -232,15 +268,18 @@ namespace Xamarin.FindAllFiles
 
         public int Line { get; }
 
-        public int Column { get; }
+        public int StartColumn { get; }
+
+        public int EndColumn { get; }
 
         public FindResultViewModel(IntPtr handle) : base(handle) { }
 
-        public FindResultViewModel(string previewText, int line, int column)
+        public FindResultViewModel(string previewText, int line, int startColumn, int endColumn)
         {
             PreviewText = previewText ?? throw new ArgumentNullException(nameof(previewText));
             Line = line;
-            Column = column;
+            StartColumn = startColumn;
+            EndColumn = endColumn;
         }
     }
 
@@ -249,8 +288,8 @@ namespace Xamarin.FindAllFiles
         public IFindResultGroupViewModel CreateGroupViewModel(string fileName, string relativeFilePath, IReadOnlyList<IFindResultViewModel> results)
             => new FindResultGroupViewModel(fileName, relativeFilePath, results);
 
-        public IFindResultViewModel CreateResultViewModel(string previewText, int line, int column)
-            => new FindResultViewModel(previewText, line, column);
+        public IFindResultViewModel CreateResultViewModel(string previewText, int line, int startColumn, int endColumn)
+            => new FindResultViewModel(previewText, line, startColumn, endColumn);
     }
 
     public interface IFindResultsView
@@ -267,6 +306,6 @@ namespace Xamarin.FindAllFiles
     {
         IFindResultGroupViewModel CreateGroupViewModel(string fileName, string relativeFilePath, IReadOnlyList<IFindResultViewModel> results);
 
-        IFindResultViewModel CreateResultViewModel(string previewText, int line, int column);
+        IFindResultViewModel CreateResultViewModel(string previewText, int line, int startColumn, int endColumn);
     }
 }
