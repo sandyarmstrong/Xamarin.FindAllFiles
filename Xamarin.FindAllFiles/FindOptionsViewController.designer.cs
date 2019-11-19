@@ -36,6 +36,9 @@ namespace Xamarin.FindAllFiles
 		[Outlet]
 		AppKit.NSButton regexButton { get; set; }
 
+		[Outlet]
+		AppKit.NSButton useExcludeSettingsButton { get; set; }
+
 		void ReleaseDesignerOutlets ()
 		{
 			if (findButton != null) {
@@ -79,6 +82,12 @@ namespace Xamarin.FindAllFiles
 			{
 				regexButton.Dispose();
 				regexButton = null;
+			}
+
+			if (useExcludeSettingsButton != null)
+			{
+				useExcludeSettingsButton.Dispose();
+				useExcludeSettingsButton = null;
 			}
 		}
 	}
