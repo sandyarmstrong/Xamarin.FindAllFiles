@@ -44,7 +44,7 @@ namespace Xamarin.FindAllFiles
 
         public override void ViewDidLoad()
         {
-            foreach (var control in new NSControl [] { searchField, workingDirectoryField, includeField, excludeField, matchCaseButton, matchWholeWordButton, regexButton, findButton })
+            foreach (var control in new NSControl [] { searchField, workingDirectoryField, includeField, excludeField, matchCaseButton, matchWholeWordButton, regexButton, useExcludeSettingsButton, findButton })
             {
                 control.Target = this;
                 control.Action = new ObjCRuntime.Selector("searchRequested:");
@@ -79,6 +79,7 @@ namespace Xamarin.FindAllFiles
                 MatchCase = matchCaseButton.State == NSCellStateValue.On,
                 MatchWholeWord = matchWholeWordButton.State == NSCellStateValue.On,
                 IsRegex = regexButton.State == NSCellStateValue.On,
+                UseExcludeSettingsAndIgnoreFiles = useExcludeSettingsButton.State == NSCellStateValue.On,
             };
 
             if (sender != findButton && viewModel == lastFindOptions)
@@ -100,8 +101,20 @@ namespace Xamarin.FindAllFiles
             findResultsView = FindResultsViewController.CurrentFindResultsView;
             findResultsView.Clear();
 
+            var args = $"--no-config --json --max-filesize {maxFileSize} --crlf";
+
+            // TODO: global vs local? need to untangle vscode a bit more
+            if (viewModel.UseExcludeSettingsAndIgnoreFiles)
+                args += " --no-ignore-parent";
+            else
+                args += " --no-ignore";
+
             // TODO: Multiline
-            var matchCaseArgs = viewModel.MatchCase ? "--case-sensitive" : "--ignore-case";
+            if (viewModel.MatchCase)
+                args += " --case-sensitive";
+            else
+                args += " --ignore-case";
+
             var isRegex = viewModel.IsRegex;
 
             if (!isRegex)
@@ -127,6 +140,9 @@ namespace Xamarin.FindAllFiles
                 }
             }
 
+            // TODO: Real escaping, etc
+            args = $"\"{searchString}\" {args}";
+
             // TODO: Why do I (now) consistently get 335 results in 107 files for "monodevelop", but vscode gets 391 in 111? Clearly need to play with options
             //       My numbers at least match what I'm getting back from rg (can check summary if using --json)
 
@@ -137,7 +153,7 @@ namespace Xamarin.FindAllFiles
                 {
                     FileName = "/usr/local/bin/rg",
                     WorkingDirectory = String.IsNullOrEmpty(viewModel.WorkingDirectory) ? "/Users/sandy/xam-git/monodevelop" : viewModel.WorkingDirectory,
-                    Arguments = $"\"{searchString}\" --json --max-filesize {maxFileSize} {matchCaseArgs}", // TODO: Real escaping, etc
+                    Arguments = args,
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     RedirectStandardOutput = true,
@@ -261,6 +277,9 @@ namespace Xamarin.FindAllFiles
 
         public bool IsRegex { get; set; }
 
+        // TODO: May need to split this into global vs local like vscode
+        public bool UseExcludeSettingsAndIgnoreFiles { get; set; }
+
         public string Query { get; set; }
 
         public string WorkingDirectory { get; set; }
@@ -271,14 +290,7 @@ namespace Xamarin.FindAllFiles
 
         public bool Equals(FindOptionsViewModel other)
         {
-            return other != null &&
-                MatchCase == other.MatchCase &&
-                MatchWholeWord == other.MatchWholeWord &&
-                IsRegex == other.IsRegex &&
-                Query == other.Query &&
-                WorkingDirectory == other.WorkingDirectory &&
-                Include == other.Include &&
-                Exclude == other.Exclude;
+            return this == other;
         }
 
         public override bool Equals(object obj)
@@ -292,6 +304,7 @@ namespace Xamarin.FindAllFiles
             hash = hash * 31 + MatchCase.GetHashCode();
             hash = hash * 31 + MatchWholeWord.GetHashCode();
             hash = hash * 31 + IsRegex.GetHashCode();
+            hash = hash * 31 + UseExcludeSettingsAndIgnoreFiles.GetHashCode();
             if (Query != null)
                 hash = hash * 31 + Query.GetHashCode();
             if (WorkingDirectory != null)
@@ -313,6 +326,7 @@ namespace Xamarin.FindAllFiles
             return left.MatchCase == right.MatchCase &&
                 left.MatchWholeWord == right.MatchWholeWord &&
                 left.IsRegex == right.IsRegex &&
+                left.UseExcludeSettingsAndIgnoreFiles == right.UseExcludeSettingsAndIgnoreFiles &&
                 left.Query == right.Query &&
                 left.WorkingDirectory == right.WorkingDirectory &&
                 left.Include == right.Include &&
