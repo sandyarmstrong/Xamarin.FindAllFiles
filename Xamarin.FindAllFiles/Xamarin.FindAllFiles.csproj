@@ -5,6 +5,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Text.Json" Version="4.6.0" />
+    <Compile Remove="Class1.cs" />
   </ItemGroup>
 </Project>

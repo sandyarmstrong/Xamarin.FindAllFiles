@@ -227,26 +227,6 @@ namespace Xamarin.FindAllFiles.Mac
         }
     }
 
-    public interface IFindResultGroupViewModel
-    {
-        string FileName { get; }
-
-        string RelativeFilePath { get; }
-
-        IReadOnlyList<IFindResultViewModel> Results { get; }
-    }
-
-    public interface IFindResultViewModel
-    {
-        string PreviewText { get; }
-
-        int Line { get; }
-
-        int StartColumn { get; }
-
-        int EndColumn { get; }
-    }
-
     public class FindResultGroupViewModel : NSObject, IFindResultGroupViewModel
     {
         public string FileName { get; }
@@ -302,23 +282,5 @@ namespace Xamarin.FindAllFiles.Mac
 
         public IFindResultViewModel CreateResultViewModel(string previewText, int line, int startColumn, int endColumn)
             => new FindResultViewModel(previewText, line, startColumn, endColumn);
-    }
-
-    public interface IFindResultsView
-    {
-        bool PushResults(IReadOnlyList<IFindResultGroupViewModel> results);
-
-        void BeginSearch();
-
-        void EndSearch(TimeSpan totalSearchTime, bool canceled = false);
-
-        void Clear();
-    }
-
-    public interface IFindResultFactory
-    {
-        IFindResultGroupViewModel CreateGroupViewModel(string fileName, string relativeFilePath, IReadOnlyList<IFindResultViewModel> results);
-
-        IFindResultViewModel CreateResultViewModel(string previewText, int line, int startColumn, int endColumn);
     }
 }

@@ -88,10 +88,6 @@
   <ItemGroup>
     <Compile Include="Main.cs" />
     <Compile Include="AppDelegate.cs" />
-    <Compile Include="ViewController.cs" />
-    <Compile Include="ViewController.designer.cs">
-      <DependentUpon>ViewController.cs</DependentUpon>
-    </Compile>
     <Compile Include="FindOptionsViewController.cs" />
     <Compile Include="FindOptionsViewController.designer.cs">
       <DependentUpon>FindOptionsViewController.cs</DependentUpon>
@@ -103,6 +99,16 @@
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Xamarin.FindAllFiles\Xamarin.FindAllFiles.csproj">
+      <Project>{1A793600-C767-423C-9BFD-76BAAB498960}</Project>
+      <Name>Xamarin.FindAllFiles</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Xamarin.RipGrep\Xamarin.RipGrep.csproj">
+      <Project>{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}</Project>
+      <Name>Xamarin.RipGrep</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Xamarin\Mac\Xamarin.Mac.CSharp.targets" />
 </Project>

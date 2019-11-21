@@ -5,6 +5,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.FindAllFiles.Mac", 
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.RipGrep", "Xamarin.RipGrep\Xamarin.RipGrep.csproj", "{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.FindAllFiles", "Xamarin.FindAllFiles\Xamarin.FindAllFiles.csproj", "{1A793600-C767-423C-9BFD-76BAAB498960}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,5 +21,9 @@ Global
 		{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1A793600-C767-423C-9BFD-76BAAB498960}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1A793600-C767-423C-9BFD-76BAAB498960}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1A793600-C767-423C-9BFD-76BAAB498960}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1A793600-C767-423C-9BFD-76BAAB498960}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
