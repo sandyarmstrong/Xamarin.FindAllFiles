@@ -17,7 +17,10 @@ namespace Xamarin.FindAllFiles
 
 		[Outlet]
 		AppKit.NSTextField resultsSummaryLabel { get; set; }
-		
+
+		[Outlet]
+		AppKit.NSProgressIndicator progressSpinner { get; set; }
+
 		void ReleaseDesignerOutlets ()
 		{
 			if (resultsOutlineView != null) {
@@ -25,9 +28,16 @@ namespace Xamarin.FindAllFiles
 				resultsOutlineView = null;
 			}
 
-			if (resultsSummaryLabel != null) {
-				resultsSummaryLabel.Dispose ();
+			if (resultsSummaryLabel != null)
+			{
+				resultsSummaryLabel.Dispose();
 				resultsSummaryLabel = null;
+			}
+
+			if (progressSpinner != null)
+			{
+				progressSpinner.Dispose();
+				progressSpinner = null;
 			}
 		}
 	}

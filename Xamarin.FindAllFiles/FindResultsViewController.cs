@@ -55,6 +55,8 @@ namespace Xamarin.FindAllFiles
 
             resultsOutlineView.Delegate = new FindResultsOutlineViewDelegate(this);
             resultsOutlineView.DataSource = new FindResultsOutlineViewDataSource(this);
+
+            progressSpinner.Hidden = true;
         }
 
         bool IFindResultsView.PushResults(IReadOnlyList<IFindResultGroupViewModel> results)
@@ -90,10 +92,20 @@ namespace Xamarin.FindAllFiles
             RefreshSummaryLabel();
         }
 
+        void IFindResultsView.BeginSearch()
+        {
+            ((IFindResultsView)this).Clear();
+
+            progressSpinner.StartAnimation(this);
+            progressSpinner.Hidden = false;
+        }
+
         void IFindResultsView.EndSearch(TimeSpan totalSearchTime, bool canceled)
         {
             this.totalSearchTime = totalSearchTime;
             uiWorkStopwatch.Stop();
+            progressSpinner.StopAnimation(this);
+            progressSpinner.Hidden = true;
             RefreshSummaryLabel(canceled);
         }
 
@@ -296,7 +308,8 @@ namespace Xamarin.FindAllFiles
     {
         bool PushResults(IReadOnlyList<IFindResultGroupViewModel> results);
 
-        // TODO: Do we need a BeginSearch, or do we just count on results coming quickly enough that it doesn't matter?
+        void BeginSearch();
+
         void EndSearch(TimeSpan totalSearchTime, bool canceled = false);
 
         void Clear();

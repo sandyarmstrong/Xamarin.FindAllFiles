@@ -109,7 +109,7 @@ namespace Xamarin.FindAllFiles
 
             findResultFactory = FindResultsViewController.CurrentFindResultsFactory;
             findResultsView = FindResultsViewController.CurrentFindResultsView;
-            findResultsView.Clear();
+            findResultsView.BeginSearch();
 
             var args = $"--no-config --json --max-filesize {maxFileSize} --crlf";
 
