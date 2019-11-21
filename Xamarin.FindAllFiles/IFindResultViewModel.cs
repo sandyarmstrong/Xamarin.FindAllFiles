@@ -1,5 +1,4 @@
-﻿
-namespace Xamarin.FindAllFiles
+﻿namespace Xamarin.FindAllFiles
 {
     public interface IFindResultViewModel
     {
