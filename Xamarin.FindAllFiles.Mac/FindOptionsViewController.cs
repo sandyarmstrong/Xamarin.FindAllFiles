@@ -200,17 +200,17 @@ namespace Xamarin.FindAllFiles.Mac
                         {
                             var filePath = string.Empty;
                             var data = string.Empty;
-                            RipGrepMatch match = null;
+                            RipGrep.Match match = null;
 
                             if (!string.IsNullOrEmpty(e.Data))
                             {
                                 //new Utf8JsonReader(
-                                var message = JsonSerializer.Deserialize<RipGrepMessage>(e.Data);
-                                if (message.type == "match")
+                                var message = JsonSerializer.Deserialize<Message>(e.Data);
+                                if (message.Type == "match")
                                 {
-                                    match = message.data;
-                                    filePath = match.path.GetText();
-                                    data = match.lines.GetText();
+                                    match = message.Data;
+                                    filePath = match.Path.GetText();
+                                    data = match.Lines.GetText();
                                 }
                             }
 
@@ -245,13 +245,13 @@ namespace Xamarin.FindAllFiles.Mac
 
                             if (data != string.Empty && match != null)
                             {
-                                var submatch = match.submatches.FirstOrDefault();
+                                var submatch = match.Submatches.FirstOrDefault();
 
                                 currentGroup.Add(findResultFactory.CreateResultViewModel(
                                     data,
-                                    match.line_number,
-                                    submatch?.start ?? 0,
-                                    submatch?.end ?? data.Length));
+                                    match.LineNumber,
+                                    submatch?.Start ?? 0,
+                                    submatch?.End ?? data.Length));
 
                                 totalResults++;
 

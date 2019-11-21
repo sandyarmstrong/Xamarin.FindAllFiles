@@ -6,62 +6,62 @@ using System.Text.Json.Serialization;
 
 namespace Xamarin.RipGrep
 {
-    public class RipGrepMessage
+    public class Message
     {
         [JsonPropertyName("type")]
-        public string type { get; set; }
+        public string Type { get; set; }
 
         [JsonPropertyName("data")]
-        public RipGrepMatch data { get; set; }
+        public Match Data { get; set; }
     }
 
-    public class RipGrepMatch
+    public class Match
     {
         [JsonPropertyName("path")]
-        public RipGrepBytesOrText path { get; set; }
+        public TextWrapper Path { get; set; }
 
         [JsonPropertyName("lines")]
-        public RipGrepBytesOrText lines { get; set; }
+        public TextWrapper Lines { get; set; }
 
         [JsonPropertyName("line_number")]
-        public int line_number { get; set; }
+        public int LineNumber { get; set; }
 
         [JsonPropertyName("absolute_offset")]
-        public int absolute_offset { get; set; }
+        public int AbsoluteOffset { get; set; }
 
         [JsonPropertyName("submatches")]
-        public IList<RipGrepSubMatch> submatches { get; set; }
+        public IList<Submatch> Submatches { get; set; }
     }
 
-    public class RipGrepSubMatch
+    public class Submatch
     {
         [JsonPropertyName("match")]
-        public RipGrepBytesOrText match { get; set; }
+        public TextWrapper Match { get; set; }
 
         [JsonPropertyName("start")]
-        public int start { get; set; }
+        public int Start { get; set; }
 
         [JsonPropertyName("end")]
-        public int end { get; set; }
+        public int End { get; set; }
     }
 
-    public class RipGrepBytesOrText
+    public class TextWrapper
     {
         [JsonPropertyName("bytes")]
-        public string bytes { get; set; }
+        public string Bytes { get; set; }
 
         [JsonPropertyName("text")]
-        public string text { get; set; }
+        public string Text { get; set; }
 
         public string GetText()
         {
-            if (!string.IsNullOrEmpty(bytes))
+            if (!string.IsNullOrEmpty(Bytes))
             {
-                return Encoding.UTF8.GetString(Convert.FromBase64String(bytes));
+                return Encoding.UTF8.GetString(Convert.FromBase64String(Bytes));
             }
             else
             {
-                return text;
+                return Text;
             }
         }
     }
