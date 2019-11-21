@@ -12,14 +12,11 @@ namespace Xamarin.FindAllFiles.Mac
         // TODO: LOL
         public static IFindResultsView CurrentFindResultsView { get; private set; }
 
-        public static IFindResultFactory CurrentFindResultsFactory { get; } = new MacFindResultFactory();
-
         // TODO: Maybe immutable (need internet)
-        readonly List<FindResultGroupViewModel> findResultGroups = new List<FindResultGroupViewModel>();
+        readonly List<MacFindResultGroupViewModel> findResultGroups = new List<MacFindResultGroupViewModel>();
+        readonly Stopwatch uiWorkStopwatch = new Stopwatch();
         int totalResultCount;
-        int rowCount;
         TimeSpan? totalSearchTime;
-        Stopwatch uiWorkStopwatch = new Stopwatch();
 
         #region Constructors
 
@@ -66,7 +63,7 @@ namespace Xamarin.FindAllFiles.Mac
                 uiWorkStopwatch?.Restart();
             }
 
-            foreach (FindResultGroupViewModel resultGroup in results)
+            foreach (MacFindResultGroupViewModel resultGroup in results)
             {
                 findResultGroups.Add(resultGroup);
                 totalResultCount += resultGroup.Results.Count;
@@ -87,7 +84,6 @@ namespace Xamarin.FindAllFiles.Mac
             resultsOutlineView.ReloadData();
 
             totalResultCount = 0;
-            rowCount = 0;
             totalSearchTime = null;
             RefreshSummaryLabel();
         }
@@ -146,7 +142,7 @@ namespace Xamarin.FindAllFiles.Mac
 
                 if (item == null)
                     view.TextField.StringValue = "ROOT";
-                else if (item is FindResultGroupViewModel groupViewModel)
+                else if (item is MacFindResultGroupViewModel groupViewModel)
                 {
                     var attributedBuffer = new NSMutableAttributedString(groupViewModel.FileName);
                     attributedBuffer.BeginEditing();
@@ -160,7 +156,7 @@ namespace Xamarin.FindAllFiles.Mac
                     attributedBuffer.EndEditing();
                     view.TextField.AttributedStringValue = attributedBuffer;
                 }
-                else if (item is FindResultViewModel resultViewModel)
+                else if (item is MacFindResultViewModel resultViewModel)
                 {
                     // TODO: Trim string, adjust offsets. Decide what to do if offsets are in leading/trailing space (probably don't trim at all?)
 
@@ -202,7 +198,7 @@ namespace Xamarin.FindAllFiles.Mac
             {
                 if (item == null)
                     return viewController.findResultGroups.Count;
-                else if (item is FindResultGroupViewModel groupViewModel)
+                else if (item is MacFindResultGroupViewModel groupViewModel)
                     return groupViewModel.Results.Count;
 
                 return 0;
@@ -213,74 +209,17 @@ namespace Xamarin.FindAllFiles.Mac
                 var index = (int)childIndex;
 
                 if (item == null)// && index >= 0 && index < viewController.findResultGroups.Count)
-                    return viewController.findResultGroups[index] as FindResultGroupViewModel;
-                else if (item is FindResultGroupViewModel groupViewModel)
-                    return groupViewModel.Results[index] as FindResultViewModel;
+                    return viewController.findResultGroups[index] as MacFindResultGroupViewModel;
+                else if (item is MacFindResultGroupViewModel groupViewModel)
+                    return groupViewModel.Results[index] as MacFindResultViewModel;
 
                 return null;
             }
 
             public override bool ItemExpandable(NSOutlineView outlineView, NSObject item)
             {
-                return item is FindResultGroupViewModel;
+                return item is MacFindResultGroupViewModel;
             }
         }
-    }
-
-    public class FindResultGroupViewModel : NSObject, IFindResultGroupViewModel
-    {
-        public string FileName { get; }
-
-        public string RelativeFilePath { get; }
-
-        public IReadOnlyList<IFindResultViewModel> Results { get; }
-
-        // TODO: ImageId for icon?
-
-        // TODO: Any state needed if user removes group from view? VScode lets you remove entire group and individual results
-
-        public FindResultGroupViewModel(IntPtr handle) : base(handle) { }
-
-        public FindResultGroupViewModel(string fileName, string relativeFilePath, IReadOnlyList<IFindResultViewModel> results)
-        {
-            if (string.IsNullOrEmpty(fileName))
-            {
-                throw new ArgumentException("fileName must be set", nameof(fileName));
-            }
-
-            FileName = fileName;
-            RelativeFilePath = relativeFilePath ?? throw new ArgumentException(nameof(relativeFilePath));
-            Results = results ?? throw new ArgumentNullException(nameof(results));
-        }
-    }
-
-    public class FindResultViewModel : NSObject, IFindResultViewModel
-    {
-        public string PreviewText { get; }
-
-        public int Line { get; }
-
-        public int StartColumn { get; }
-
-        public int EndColumn { get; }
-
-        public FindResultViewModel(IntPtr handle) : base(handle) { }
-
-        public FindResultViewModel(string previewText, int line, int startColumn, int endColumn)
-        {
-            PreviewText = previewText ?? throw new ArgumentNullException(nameof(previewText));
-            Line = line;
-            StartColumn = startColumn;
-            EndColumn = endColumn;
-        }
-    }
-
-    public class MacFindResultFactory : IFindResultFactory
-    {
-        public IFindResultGroupViewModel CreateGroupViewModel(string fileName, string relativeFilePath, IReadOnlyList<IFindResultViewModel> results)
-            => new FindResultGroupViewModel(fileName, relativeFilePath, results);
-
-        public IFindResultViewModel CreateResultViewModel(string previewText, int line, int startColumn, int endColumn)
-            => new FindResultViewModel(previewText, line, startColumn, endColumn);
     }
 }

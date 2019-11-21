@@ -96,6 +96,9 @@
     <Compile Include="FindResultsViewController.designer.cs">
       <DependentUpon>FindResultsViewController.cs</DependentUpon>
     </Compile>
+    <Compile Include="MacFindResultGroupViewModel.cs" />
+    <Compile Include="MacFindResultViewModel.cs" />
+    <Compile Include="MacFindResultFactory.cs" />
   </ItemGroup>
   <ItemGroup>
     <InterfaceDefinition Include="Main.storyboard" />

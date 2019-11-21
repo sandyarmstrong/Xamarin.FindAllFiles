@@ -62,7 +62,7 @@ namespace Xamarin.FindAllFiles.Mac
 
         readonly Lazy<IFileSearchEngine> engine = new Lazy<IFileSearchEngine>(() => {
             return new RipGrepFileSearchEngine(
-                FindResultsViewController.CurrentFindResultsFactory,
+                new MacFindResultFactory(),
                 FindResultsViewController.CurrentFindResultsView,
                 CurrentFindOptionsView);
         });
