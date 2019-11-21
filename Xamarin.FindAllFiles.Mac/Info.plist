@@ -3,7 +3,7 @@
 <plist version="1.0">
 <dict>
 	<key>CFBundleName</key>
-	<string>Xamarin.FindAllFiles</string>
+	<string>Xamarin.FindAllFiles.Mac</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.xamarin.Xamarin-FindAllFiles</string>
 	<key>CFBundleShortVersionString</key>

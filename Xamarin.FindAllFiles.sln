@@ -1,7 +1,7 @@
 
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.FindAllFiles", "Xamarin.FindAllFiles\Xamarin.FindAllFiles.csproj", "{B9E43392-12D4-4D73-B3A1-D0046CAA48BB}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.FindAllFiles.Mac", "Xamarin.FindAllFiles.Mac\Xamarin.FindAllFiles.Mac.csproj", "{B9E43392-12D4-4D73-B3A1-D0046CAA48BB}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Xamarin.RipGrep", "Xamarin.RipGrep\Xamarin.RipGrep.csproj", "{E1DF0799-E1CA-4023-AE38-4A9A7F6EB33C}"
 EndProject

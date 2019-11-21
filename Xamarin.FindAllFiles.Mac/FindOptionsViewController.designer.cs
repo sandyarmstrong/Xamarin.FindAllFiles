@@ -7,7 +7,7 @@
 using Foundation;
 using System.CodeDom.Compiler;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
 	[Register ("FindOptionsViewController")]
 	partial class FindOptionsViewController

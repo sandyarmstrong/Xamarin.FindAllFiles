@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using AppKit;
 using Foundation;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     public partial class FindOptionsViewController : AppKit.NSViewController
     {

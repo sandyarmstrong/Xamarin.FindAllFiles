@@ -4,7 +4,7 @@ using System;
 using AppKit;
 using Foundation;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     public partial class ViewController : NSViewController
     {

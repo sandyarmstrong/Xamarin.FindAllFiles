@@ -5,7 +5,7 @@ using System.Diagnostics;
 using AppKit;
 using Foundation;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     public partial class FindResultsViewController : NSViewController, IFindResultsView
     {

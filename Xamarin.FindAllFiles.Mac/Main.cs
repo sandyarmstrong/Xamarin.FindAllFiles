@@ -1,7 +1,7 @@
 ﻿// Main.cs
 using AppKit;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     static class MainClass
     {

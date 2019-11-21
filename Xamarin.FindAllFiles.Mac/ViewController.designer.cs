@@ -7,7 +7,7 @@
 //
 using Foundation;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     [Register("ViewController")]
     partial class ViewController

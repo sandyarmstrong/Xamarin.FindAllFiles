@@ -6,8 +6,8 @@
     <ProjectGuid>{B9E43392-12D4-4D73-B3A1-D0046CAA48BB}</ProjectGuid>
     <ProjectTypeGuids>{A3F8F2AB-B479-4A4A-A458-A89E7DC349F1};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <OutputType>Exe</OutputType>
-    <RootNamespace>Xamarin.FindAllFiles</RootNamespace>
-    <AssemblyName>Xamarin.FindAllFiles</AssemblyName>
+    <RootNamespace>Xamarin.FindAllFiles.Mac</RootNamespace>
+    <AssemblyName>Xamarin.FindAllFiles.Mac</AssemblyName>
     <TargetFrameworkVersion>v2.0</TargetFrameworkVersion>
     <TargetFrameworkIdentifier>Xamarin.Mac</TargetFrameworkIdentifier>
     <MonoMacResourcePrefix>Resources</MonoMacResourcePrefix>

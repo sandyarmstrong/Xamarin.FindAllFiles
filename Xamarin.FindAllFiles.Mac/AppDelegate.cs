@@ -2,7 +2,7 @@
 using AppKit;
 using Foundation;
 
-namespace Xamarin.FindAllFiles
+namespace Xamarin.FindAllFiles.Mac
 {
     [Register("AppDelegate")]
     public class AppDelegate : NSApplicationDelegate
