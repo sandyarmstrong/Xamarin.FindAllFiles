@@ -85,7 +85,7 @@ namespace Xamarin.FindAllFiles.Mac
                 UseExcludeSettingsAndIgnoreFiles = useExcludeSettingsButton.State == NSCellStateValue.On,
             };
 
-            engine.Value.SearchFiles(viewModel, sender == findButton, BeginInvokeOnMainThread);
+            engine.Value.SearchFilesAsync(viewModel, sender == findButton);
         }
 
         void IFindOptionsView.BeginSearch()

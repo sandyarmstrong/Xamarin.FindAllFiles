@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Tasks;
 
 using Xamarin.RipGrep;
 
@@ -31,7 +32,10 @@ namespace Xamarin.FindAllFiles
             this.findOptionsView = findOptionsView ?? throw new ArgumentNullException(nameof(findOptionsView));
         }
 
-        public void SearchFiles(FindOptionsViewModel viewModel, bool forceSearch, Action<Action> invokeOnMainThread)
+        public async Task SearchFilesAsync(
+            FindOptionsViewModel viewModel,
+            bool forceSearch,
+            CancellationToken cancellationToken = default)
         {
             if (IsSearching)
                 return;
@@ -104,18 +108,15 @@ namespace Xamarin.FindAllFiles
             var currentGroupFilePath = string.Empty;
             var totalResults = 0;
 
-            // TODO: Make method we're in async
-            rgEngine.SearchAsync(rgOptions, HandleMessage, cancellationTokenSource.Token).ContinueWith(t =>
-            {
-                sw.Stop();
-                IsSearching = false;
+            var mainSyncContext = SynchronizationContext.Current;
 
-                invokeOnMainThread(() =>
-                {
-                    findResultsView.EndSearch(sw.Elapsed, canceled: killed);
-                    findOptionsView.EndSearch();
-                });
-            });
+            await rgEngine.SearchAsync(rgOptions, HandleMessage, cancellationTokenSource.Token);
+
+            sw.Stop();
+            IsSearching = false;
+
+            findResultsView.EndSearch(sw.Elapsed, canceled: killed);
+            findOptionsView.EndSearch();
 
             void HandleMessage(Message message)
             {
@@ -142,7 +143,7 @@ namespace Xamarin.FindAllFiles
                                         currentGroup),
                                 };
 
-                    invokeOnMainThread(() =>
+                    mainSyncContext.Post(_ =>
                     {
                         try
                         {
@@ -152,7 +153,7 @@ namespace Xamarin.FindAllFiles
                         {
                             Console.Error.WriteLine(ex);
                         }
-                    });
+                    }, null);
 
                     currentGroup = new List<IFindResultViewModel>();
                     currentGroupFilePath = filePath;

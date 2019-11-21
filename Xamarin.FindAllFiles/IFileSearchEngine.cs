@@ -1,4 +1,5 @@
-﻿using System;
+﻿using System.Threading;
+using System.Threading.Tasks;
 
 namespace Xamarin.FindAllFiles
 {
@@ -6,6 +7,9 @@ namespace Xamarin.FindAllFiles
     {
         bool IsSearching { get; }
 
-        void SearchFiles(FindOptionsViewModel options, bool forceSearch, Action<Action> invokeOnMainThread);
+        Task SearchFilesAsync(
+            FindOptionsViewModel options,
+            bool forceSearch,
+            CancellationToken cancellationToken = default);
     }
 }
