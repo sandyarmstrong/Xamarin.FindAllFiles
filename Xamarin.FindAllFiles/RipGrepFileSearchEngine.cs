@@ -3,9 +3,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Text.RegularExpressions;
-using System.Threading.Tasks;
+using System.Threading;
 
 using Xamarin.RipGrep;
 
@@ -53,20 +52,6 @@ namespace Xamarin.FindAllFiles
             findOptionsView.BeginSearch();
             findResultsView.BeginSearch();
 
-            var args = $"--no-config --json --max-filesize {maxFileSize} --crlf";
-
-            // TODO: global vs local? need to untangle vscode a bit more
-            if (viewModel.UseExcludeSettingsAndIgnoreFiles)
-                args += " --no-ignore-parent";
-            else
-                args += " --no-ignore";
-
-            // TODO: Multiline
-            if (viewModel.MatchCase)
-                args += " --case-sensitive";
-            else
-                args += " --ignore-case";
-
             var isRegex = viewModel.IsRegex;
 
             if (!isRegex)
@@ -92,141 +77,110 @@ namespace Xamarin.FindAllFiles
                 }
             }
 
-            // TODO: Real escaping, etc
-            args = $"\"{searchString}\" {args}";
+            var rgEngine = new RipGrepEngine();
+
+            var rgOptions = new FindOptions
+            {
+                NoConfig = true,
+                MaxFileSize = maxFileSize,
+                CrlfSupport = true,
+                NoIgnore = !viewModel.UseExcludeSettingsAndIgnoreFiles,
+                NoIgnoreParent = viewModel.UseExcludeSettingsAndIgnoreFiles,
+                CaseSensitive = viewModel.MatchCase,
+                IgnoreCase = !viewModel.MatchCase,
+                WorkingDirectory = viewModel.WorkingDirectory,
+                Query = searchString,
+            };
 
             // TODO: Why do I (now) consistently get 335 results in 107 files for "monodevelop", but vscode gets 391 in 111? Clearly need to play with options
             //       My numbers at least match what I'm getting back from rg (can check summary if using --json)
 
-            // TODO: When we have internet again, switch to use json output like vscode
-            var p = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = "/usr/local/bin/rg",
-                    WorkingDirectory = String.IsNullOrEmpty(viewModel.WorkingDirectory) ? "/Users/sandy/xam-git/monodevelop" : viewModel.WorkingDirectory,
-                    Arguments = args,
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    RedirectStandardOutput = true,
-                }
-            };
-
+            var cancellationTokenSource = new CancellationTokenSource();
             var killed = false;
             var sw = new Stopwatch();
             sw.Start();
 
-            Task.Run(() =>
+            var currentGroup = new List<IFindResultViewModel>();
+            var currentGroupFilePath = string.Empty;
+            var totalResults = 0;
+
+            // TODO: Make method we're in async
+            rgEngine.SearchAsync(rgOptions, HandleMessage, cancellationTokenSource.Token).ContinueWith(t =>
             {
-                try
+                sw.Stop();
+                IsSearching = false;
+
+                invokeOnMainThread(() =>
                 {
-                    p.Start();
-                    p.BeginOutputReadLine();
+                    findResultsView.EndSearch(sw.Elapsed, canceled: killed);
+                    findOptionsView.EndSearch();
+                });
+            });
 
-                    var currentGroup = new List<IFindResultViewModel>();
-                    var currentGroupFilePath = string.Empty;
-                    var totalResults = 0;
+            void HandleMessage(Message message)
+            {
+                if (totalResults > maxResults)
+                    return;
 
-                    // TODO: Check if we guarantee to get full lines here. Actually just use mirepoix when you have internet
-                    //       Looks like we get a line at a time.
-                    p.OutputDataReceived += HandleOutputDataReceived;
+                var filePath = string.Empty;
+                var data = string.Empty;
+                RipGrep.Match match = null;
 
-                    void HandleOutputDataReceived(object o, DataReceivedEventArgs e)
-                    {
-                        if (totalResults > maxResults)
-                            return;
+                if (message.Type == "match")
+                {
+                    match = message.Data;
+                    filePath = match.Path.GetText();
+                    data = match.Lines.GetText();
+                }
 
-                        try
-                        {
-                            var filePath = string.Empty;
-                            var data = string.Empty;
-                            RipGrep.Match match = null;
-
-                            if (!string.IsNullOrEmpty(e.Data))
-                            {
-                                //new Utf8JsonReader(
-                                var message = JsonSerializer.Deserialize<Message>(e.Data);
-                                if (message.Type == "match")
-                                {
-                                    match = message.Data;
-                                    filePath = match.Path.GetText();
-                                    data = match.Lines.GetText();
-                                }
-                            }
-
-                            if (currentGroupFilePath != string.Empty && filePath != currentGroupFilePath)
-                            {
-                                var resultsToPush = new[] {
+                if (currentGroupFilePath != string.Empty && filePath != currentGroupFilePath)
+                {
+                    var resultsToPush = new[] {
                                     findResultFactory.CreateGroupViewModel(
                                         Path.GetFileName(currentGroupFilePath),
                                         Path.GetDirectoryName(currentGroupFilePath),
                                         currentGroup),
                                 };
 
-                                invokeOnMainThread(() =>
-                                {
-                                    try
-                                    {
-                                        findResultsView.PushResults(resultsToPush);
-                                    }
-                                    catch (Exception ex)
-                                    {
-                                        Console.Error.WriteLine(ex);
-                                    }
-                                });
-
-                                currentGroup = new List<IFindResultViewModel>();
-                                currentGroupFilePath = filePath;
-                            }
-                            else if (currentGroupFilePath == string.Empty)
-                            {
-                                currentGroupFilePath = filePath;
-                            }
-
-                            if (data != string.Empty && match != null)
-                            {
-                                var submatch = match.Submatches.FirstOrDefault();
-
-                                currentGroup.Add(findResultFactory.CreateResultViewModel(
-                                    data,
-                                    match.LineNumber,
-                                    submatch?.Start ?? 0,
-                                    submatch?.End ?? data.Length));
-
-                                totalResults++;
-
-                                if (totalResults > maxResults)
-                                {
-                                    killed = true;
-                                    p.Kill();
-                                    p.OutputDataReceived -= HandleOutputDataReceived;
-                                    Console.Error.WriteLine("Exceeded max allowed results; killing search");
-                                }
-                            }
+                    invokeOnMainThread(() =>
+                    {
+                        try
+                        {
+                            findResultsView.PushResults(resultsToPush);
                         }
                         catch (Exception ex)
                         {
                             Console.Error.WriteLine(ex);
                         }
-                    };
-
-                    p.WaitForExit();
-                    sw.Stop();
-                    IsSearching = false;
-
-                    Console.Error.WriteLine($"Completed in {sw.ElapsedMilliseconds}ms");
-
-                    invokeOnMainThread(() =>
-                    {
-                        findResultsView.EndSearch(sw.Elapsed, canceled: killed);
-                        findOptionsView.EndSearch();
                     });
+
+                    currentGroup = new List<IFindResultViewModel>();
+                    currentGroupFilePath = filePath;
                 }
-                catch (Exception e)
+                else if (currentGroupFilePath == string.Empty)
                 {
-                    Console.Error.WriteLine(e);
+                    currentGroupFilePath = filePath;
                 }
-            });
+
+                if (data != string.Empty && match != null)
+                {
+                    var submatch = match.Submatches.FirstOrDefault();
+
+                    currentGroup.Add(findResultFactory.CreateResultViewModel(
+                        data,
+                        match.LineNumber,
+                        submatch?.Start ?? 0,
+                        submatch?.End ?? data.Length));
+
+                    totalResults++;
+
+                    if (totalResults > maxResults)
+                    {
+                        killed = true;
+                        cancellationTokenSource.Cancel();
+                    }
+                }
+            }
         }
     }
 }
